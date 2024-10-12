@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+ssl/local.crt
+ssl/local.csr
+ssl/local.key
+ssl/myCA.*
