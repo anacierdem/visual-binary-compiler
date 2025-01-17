@@ -20,3 +20,7 @@ CSR:
 
 Cert:
 `openssl x509 -req -in local.csr -CA myCA.pem -CAkey myCA.key -CAcreateserial -out local.crt -days 825 -sha256 -extfile local.ext`
+
+#### Install cert
+
+https://learn.microsoft.com/en-us/windows-hardware/drivers/install/trusted-root-certification-authorities-certificate-store
