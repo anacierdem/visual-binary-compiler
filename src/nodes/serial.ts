@@ -170,12 +170,13 @@ export class Serial extends LGraphNode {
     }
 
     // Reset comm
+    await this.activePort.setSignals({ dataTerminalReady: true });
     let dataSetReady = false;
-
     while (!dataSetReady) {
-      await this.activePort.setSignals({ dataTerminalReady: true });
       ({ dataSetReady } = await this.activePort.getSignals());
     }
+    // TODO: flush buffers here
+    await this.activePort.setSignals({ dataTerminalReady: false });
     console.log('Conn reset');
   }
 
