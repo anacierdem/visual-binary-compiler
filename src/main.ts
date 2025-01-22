@@ -7,12 +7,15 @@ import { Number } from './nodes/number';
 import { Log } from './nodes/log';
 import { Serial } from './nodes/serial';
 
-LiteGraph.clearRegisteredTypes();
+// LiteGraph.clearRegisteredTypes();
 //register in the system
 LiteGraph.registerNodeType('basic/sum', Sum);
 LiteGraph.registerNodeType('basic/number', Number);
 LiteGraph.registerNodeType('basic/log', Log);
 LiteGraph.registerNodeType('basic/serial', Serial);
+
+// This fixes a bug with some of the internal nodes
+window.LGraph = LiteGraph;
 
 var graph = new LGraph();
 
