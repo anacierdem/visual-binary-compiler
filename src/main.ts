@@ -35,6 +35,9 @@ var node_serial = LiteGraph.createNode('basic/serial');
 node_serial.pos = [700, 400];
 graph.add(node_serial);
 
+var button = LiteGraph.createNode('widget/button');
+button.pos = [300, 450];
+graph.add(button);
+
 // canvas.switchLiveMode(false);
-// graph.start();
-graph.runStep();
+graph.start();

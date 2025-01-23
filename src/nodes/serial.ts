@@ -1,9 +1,4 @@
-import {
-  IButtonWidget,
-  IComboWidget,
-  INumberWidget,
-  LGraphNode,
-} from 'litegraph.js';
+import { IButtonWidget, LGraphNode, LiteGraph } from 'litegraph.js';
 
 export class Serial extends LGraphNode {
   connectButton: IButtonWidget;
@@ -15,6 +10,9 @@ export class Serial extends LGraphNode {
   constructor() {
     super();
 
+    this.addInput('onEvent', LiteGraph.ACTION);
+
+    // TODO: make these better, like proper combo options & allowed precision
     this.properties = {
       baudRate: 115200,
       dataBits: 8,
@@ -27,45 +25,6 @@ export class Serial extends LGraphNode {
     this.connectButton = this.addWidget<IButtonWidget>('button', '...', null);
     this.button = this.addWidget<IButtonWidget>('button', 'test', null);
     this.button.callback = this.sendData.bind(this);
-
-    // TODO: implement these
-    // TODO: make these better, like proper combo options & allowed precision
-    this.addWidget<INumberWidget>(
-      'number',
-      'baud rate',
-      this.properties.baudRate,
-      'baudRate'
-    );
-    this.addWidget<INumberWidget>(
-      'number',
-      'data bits',
-      this.properties.dataBits,
-      'dataBits'
-    );
-    this.addWidget<INumberWidget>(
-      'number',
-      'stop bits',
-      this.properties.stopBits,
-      'stopBits'
-    );
-    this.addWidget<IComboWidget>(
-      'combo',
-      'parity',
-      [this.properties.parity],
-      () => {},
-      {
-        values: ['none', 'even', 'odd'],
-      }
-    );
-    this.addWidget<INumberWidget>(
-      'number',
-      'buffer size',
-      this.properties.bufferSize,
-      'bufferSize'
-    );
-    this.addWidget<IComboWidget>('combo', 'flow control', ['none'], () => {}, {
-      values: ['none', 'hardware'],
-    });
 
     this.disableConnectButton();
 
@@ -86,6 +45,10 @@ export class Serial extends LGraphNode {
     });
   }
   title = 'Serial';
+
+  onAction(action: string, data: any) {
+    console.log('onEvent', action, data);
+  }
 
   async onConnectClick() {
     // TODO: add filtering options & related node inputs, https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API
@@ -142,17 +105,24 @@ export class Serial extends LGraphNode {
       // Start reading
       while (this.activePort.readable) {
         this.reader = this.activePort.readable.getReader();
+        console.log('start read');
 
         try {
+          let cmd = '';
+          const decoder = new TextDecoder();
           while (true) {
-            console.log('start read');
-
             const { value, done } = await this.reader.read();
             if (done) {
-              console.log('buffer empty');
+              console.log('DONE reading');
               break;
             }
-            console.log('value', value.toString());
+            cmd += decoder.decode(value, { stream: true });
+
+            if (cmd.length >= 4) {
+              // TODO: actually handle the command
+              console.log('command', cmd.slice(0, 12));
+              cmd = cmd.slice(12);
+            }
           }
         } catch (error) {
           console.log('read error', error);

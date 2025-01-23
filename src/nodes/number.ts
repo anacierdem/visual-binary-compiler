@@ -7,7 +7,6 @@ export class Number extends LGraphNode {
     this.addWidget("slider", "value", this.value, (v) => {
       this.value = v;
       this.setOutputData(0, v);
-      this.graph?.runStep();
     }, { min: 0, max: 1 });
     this.addOutput("out", "number");
   }
