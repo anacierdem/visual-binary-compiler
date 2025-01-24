@@ -12,6 +12,17 @@ export class Serial extends LGraphNode {
 
     this.addInput('onEvent', LiteGraph.ACTION);
 
+    // Signal inputs
+    this.addInput('dataTerminalReady', 'boolean');
+    this.addInput('requestToSend', 'boolean');
+    this.addInput('break', 'boolean');
+
+    // Signal outputs
+    this.addOutput('clearToSend', 'boolean');
+    this.addOutput('dataCarrierDetect', 'boolean');
+    this.addOutput('dataSetReady', 'boolean');
+    this.addOutput('ringIndicator', 'boolean');
+
     // TODO: make these better, like proper combo options & allowed precision
     this.properties = {
       baudRate: 115200,
@@ -216,5 +227,35 @@ export class Serial extends LGraphNode {
     this.connectButton.name = name ?? 'Connect';
   }
 
-  onExecute() {}
+  async onExecute() {
+    if (!this.activePort) {
+      return;
+    }
+
+    try {
+      // Handle input signals
+      const dtr = this.getInputData<boolean | undefined>(1);
+      const rts = this.getInputData<boolean | undefined>(2);
+      const brk = this.getInputData<boolean | undefined>(3);
+
+      // Only set signals if any input has changed
+      if (dtr !== undefined || rts !== undefined || brk !== undefined) {
+        this.activePort.setSignals({
+          ...(dtr !== undefined && { dataTerminalReady: dtr }),
+          ...(rts !== undefined && { requestToSend: rts }),
+          ...(brk !== undefined && { break: brk }),
+        });
+      }
+
+      // Update output signals
+      const signals = await this.activePort.getSignals();
+
+      this.setOutputData(0, signals.clearToSend);
+      this.setOutputData(1, signals.dataCarrierDetect);
+      this.setOutputData(2, signals.dataSetReady);
+      this.setOutputData(3, signals.ringIndicator);
+    } catch (e) {
+      console.error(e);
+    }
+  }
 }
