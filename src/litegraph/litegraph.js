@@ -1,3 +1,18 @@
+import * as monaco from 'monaco-editor';
+import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
+import worker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
+
+self.MonacoEnvironment = {
+  getWorker: function (workerId, label) {
+    switch (label) {
+      case 'javascript':
+        return new tsWorker();
+      default:
+        return new worker();
+    }
+  },
+};
+
 // *************************************************************
 //   LiteGraph CLASS                                     *******
 // *************************************************************
@@ -764,6 +779,8 @@ export const LiteGraph = {
     return null;
   },
 };
+
+LiteGraph.LGraphNode = LGraphNode;
 
 //timer that works everywhere
 if (typeof performance != 'undefined') {
@@ -12994,40 +13011,28 @@ LGraphCanvas.prototype.showShowNodePanel = function (node) {
     panel.classList.remove('settings');
     panel.classList.add('centered');
 
-    /*if(window.CodeFlask) //disabled for now
-			{
-				panel.content.innerHTML = "<div class='code'></div>";
-				var flask = new CodeFlask( "div.code", { language: 'js' });
-				flask.updateCode(node.properties[propname]);
-				flask.onUpdate( function(code) {
-					node.setProperty(propname, code);
-				});
-			}
-			else
-			{*/
-    panel.alt_content.innerHTML = "<textarea class='code'></textarea>";
-    var textarea = panel.alt_content.querySelector('textarea');
+    panel.alt_content.innerHTML = '<div id="monaco"></div>';
+    const container = document.getElementById('monaco');
+    container.style.height = 'calc(100% - 40px)';
+    container.style.width = '100%';
+    const editor = monaco.editor.create(container, {
+      value: node.properties[propname],
+      language: 'javascript',
+      automaticLayout: true,
+    });
     var fDoneWith = function () {
       panel.toggleAltContent(false); //if(node_prop_div) node_prop_div.style.display = "block"; // panel.close();
       panel.toggleFooterVisibility(true);
-      textarea.parentNode.removeChild(textarea);
+      editor.dispose();
+      container.parentNode.removeChild(container);
       panel.classList.add('settings');
       panel.classList.remove('centered');
       inner_refresh();
     };
-    textarea.value = node.properties[propname];
-    textarea.addEventListener('keydown', function (e) {
-      if (e.code == 'Enter' && e.ctrlKey) {
-        node.setProperty(propname, textarea.value);
-        fDoneWith();
-      }
-    });
     panel.toggleAltContent(true);
     panel.toggleFooterVisibility(false);
-    textarea.style.height = 'calc(100% - 40px)';
-    /*}*/
     var assign = panel.addButton('Assign', function () {
-      node.setProperty(propname, textarea.value);
+      node.setProperty(propname, editor.getValue());
       fDoneWith();
     });
     panel.alt_content.appendChild(assign); //panel.content.appendChild(assign);
