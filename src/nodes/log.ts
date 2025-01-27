@@ -1,11 +1,11 @@
-import { LGraphNode } from "litegraph.js";
+import { LGraphNode } from '../litegraph/litegraph.js';
 
 export class Log extends LGraphNode {
   constructor() {
     super();
-    this.addInput("A", "number");
+    this.addInput('A', 'number');
   }
-  title = "Console.log";
+  title = 'Console.log';
 
   onExecute() {
     var A = this.getInputData(0);
