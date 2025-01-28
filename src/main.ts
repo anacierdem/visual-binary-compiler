@@ -27,9 +27,15 @@ var graph = new LGraph(
 window.graph = graph;
 
 var canvas = new LGraphCanvas('#mycanvas', graph);
+// TODO: implement resize
+const ctx = document.getElementById('mycanvas').getContext('2d');
+ctx.canvas.width = window.innerWidth;
+ctx.canvas.height = window.innerHeight;
 
 document.getElementById('btn').addEventListener('click', () => {
   canvas.switchLiveMode(false);
 });
+
+LiteGraph.allow_scripts = true;
 
 graph.start();
