@@ -1620,7 +1620,9 @@ NodeScript.prototype.onExecute = function () {
     var A = this.getInputData(0);
     var B = this.getInputData(1);
     var C = this.getInputData(2);
-    this.setOutputData(0, this._func(A, B, C, this.data, this));
+    const res = this._func(A, B, C, this.data, this);
+    console.log('exec', res);
+    this.setOutputData(0, res);
   } catch (err) {
     console.error('Error in script');
     console.error(err);

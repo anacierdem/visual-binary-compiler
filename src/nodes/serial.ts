@@ -8,7 +8,7 @@ export class Serial extends LGraphNode {
   connectButton: IButtonWidget;
   button: IButtonWidget;
   knownPorts: SerialPort[] = [];
-  reader?: ReadableStreamDefaultReader;
+
   writer?: WritableStreamDefaultWriter;
   activePort: SerialPort | null = null;
   constructor() {
@@ -26,6 +26,8 @@ export class Serial extends LGraphNode {
     this.addOutput('dataCarrierDetect', 'boolean');
     this.addOutput('dataSetReady', 'boolean');
     this.addOutput('ringIndicator', 'boolean');
+
+    this.addOutput('tx', 'ReadableStream');
 
     // TODO: make these better, like proper combo options & allowed precision
     this.properties = {
@@ -117,32 +119,12 @@ export class Serial extends LGraphNode {
 
       this.enableConnectButton('Disconnect', this.disconnect.bind(this));
 
-      // Start reading
       while (this.activePort.readable) {
-        this.reader = this.activePort.readable.getReader();
-        console.log('start read');
-
-        try {
-          let cmd = '';
-          const decoder = new TextDecoder();
-          while (true) {
-            const { value, done } = await this.reader.read();
-            if (done) {
-              console.log('DONE reading');
-              break;
-            }
-            cmd += decoder.decode(value, { stream: true });
-
-            if (cmd.length >= 4) {
-              // TODO: actually handle the command
-              console.log('command', cmd.slice(0, 12));
-              cmd = cmd.slice(12);
-            }
-          }
-        } catch (error) {
-          console.log('read error', error);
-        }
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        this.setOutputData(4, this.activePort.readable);
       }
+      this.reader = undefined;
+      this.setOutputData(4, null);
     } catch (e) {
       this.enableConnectButton('Failed to connect');
       console.error(e);
