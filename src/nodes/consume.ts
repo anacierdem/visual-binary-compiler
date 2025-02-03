@@ -42,8 +42,8 @@ export class Consume extends LGraphNode {
   }
 
   async startReading() {
-    this.reader = this.stream.getReader();
     try {
+      this.reader = this.stream.getReader();
       let cmd = '';
       const decoder = new TextDecoder();
       while (true) {
@@ -62,8 +62,11 @@ export class Consume extends LGraphNode {
       }
     } catch (error) {
       console.log('read error', error);
+      if (error instanceof TypeError) {
+        this.disconnectInput(0);
+      }
     } finally {
-      this.reader.releaseLock();
+      this.reader?.releaseLock();
     }
   }
 }
