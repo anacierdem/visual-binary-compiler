@@ -28,5 +28,5 @@ jobs:
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
         with:
-          # command: pages deploy YOUR_DIST_FOLDER
+          command: pages deploy ./dist
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
