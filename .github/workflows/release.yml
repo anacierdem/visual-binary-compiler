@@ -28,5 +28,5 @@ jobs:
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
         with:
-          command: pages deploy ./dist
+          command: pages deploy ./dist --project-name=vbc
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
