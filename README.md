@@ -24,3 +24,7 @@ Cert:
 #### Install cert
 
 https://learn.microsoft.com/en-us/windows-hardware/drivers/install/trusted-root-certification-authorities-certificate-store
+
+#### Local deploy
+
+`npx wrangler pages deploy ./dist`
