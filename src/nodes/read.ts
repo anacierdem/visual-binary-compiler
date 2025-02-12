@@ -1,26 +1,31 @@
 import { LiteGraph, LGraphNode } from '../litegraph/litegraph.js';
 
-export class Consume extends LGraphNode {
+export class Read extends LGraphNode {
   constructor() {
     super();
     this.addInput('in', 'ReadableStream');
+    this.addInput('offset', 'number');
+    this.addInput('length', 'number');
 
-    this.addOutput('match', 'ReadableStream');
-    this.addOutput('rest', 'ReadableStream');
+    this.addOutput('match', 'ArrayBuffer');
+    this.addOutput('passthrough', 'ReadableStream');
   }
-  title = 'Consume';
+  title = 'Read';
 
   stream?: ReadableStream;
   reader?: ReadableStreamDefaultReader;
 
+  // TODO: extend a common base class with consume
   async onConnectionsChange(type, i, connected, info, input) {
     if (type === LiteGraph.INPUT) {
-      // TODO: also check which input
+      // Readable stream input
+      if (i != 0) return;
       if (connected) {
         if (info.data) {
           this.stream = info.data;
         } else {
           // FIXME: why this is needed except for the initial establish connection?
+          // FIXME: This creates a race condition with the disconnect event
           while (!info.data) {
             await new Promise((resolve) => setTimeout(resolve, 100));
           }
@@ -44,23 +49,37 @@ export class Consume extends LGraphNode {
 
   async startReading() {
     try {
-      this.reader = this.stream.getReader();
-      let cmd = '';
-      const decoder = new TextDecoder();
-      while (true) {
+      const [stream1, stream2] = this.stream.tee();
+      this.setOutputData(2, stream2);
+      this.reader = stream1.getReader();
+
+      // TODO: when should we get the length & pos exactly?
+      const offset = this.getInputData<number>(1);
+      const length = this.getInputData<number>(2);
+
+      let readBytes = 0;
+      const buffer = new ArrayBuffer(length);
+      const view = new Uint8Array(buffer);
+      while (readBytes < length + offset) {
         const { value, done } = await this.reader.read();
         if (done) {
           console.log('DONE reading');
           break;
         }
-        cmd += decoder.decode(value, { stream: true });
 
-        if (cmd.length >= 4) {
-          // TODO: actually handle the command
-          console.log('command', cmd.slice(0, 12));
-          cmd = cmd.slice(12);
+        if (readBytes + value.length >= offset) {
+          const into = Math.max(0, readBytes - offset);
+          const source = new Uint8Array(
+            value.buffer,
+            Math.max(0, offset - readBytes),
+            Math.min(value.length, length - into)
+          );
+          view.set(source, into);
         }
+
+        readBytes = readBytes + value.length;
       }
+      this.setOutputData(0, buffer);
     } catch (error) {
       console.log('read error', error);
       if (error instanceof TypeError) {

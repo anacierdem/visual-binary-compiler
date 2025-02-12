@@ -11,11 +11,15 @@ import './litegraph/nodes/interface';
 import { Log } from './nodes/log';
 import { Serial } from './nodes/serial';
 import { Consume } from './nodes/consume.js';
+import { Read } from './nodes/read.js';
+import { Uint8 } from './nodes/uint8.js';
 
 // LiteGraph.clearRegisteredTypes();
-LiteGraph.registerNodeType('basic/log', Log);
+// LiteGraph.registerNodeType('basic/log', Log);
 LiteGraph.registerNodeType('serial/serial', Serial);
 LiteGraph.registerNodeType('serial/consume', Consume);
+LiteGraph.registerNodeType('serial/read', Read);
+LiteGraph.registerNodeType('serial/uint8', Uint8);
 
 // This fixes a bug with some of the internal nodes
 window.LGraph = LiteGraph;
