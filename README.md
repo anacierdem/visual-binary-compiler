@@ -12,7 +12,7 @@ It is currently fully built on litegraph.js but it is getting heavily modified t
 The core idea resembles the capabilities of `https://github.com/WerWolv/ImHex` but for data streaming & on the web. I don't know if I'll adopt a similar [pattern language](https://github.com/WerWolv/PatternLanguage/) (maybe even compatible).
 The project is currently at a very early experimentation phase. It basically provides me something to work with Web Serial, USB and MIDI APIs and primarily serves my curiosity. I don't know how useful or feature complete it may become. I only have a few crude custom nodes implemented for serial input/output.
 
-You can try it at: https://builder.alinacierdem.com/
+You can try it at: https://builder.alinacierdem.com/ You'll see a very basic setup trying to interface with a [SummerCart64](https://github.com/Polprzewodnikowy/SummerCart64/blob/main/docs/03_usb_interface.md#resetting-communication).
 
 ## Starting the project locally
 
