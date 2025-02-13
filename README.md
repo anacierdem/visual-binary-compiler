@@ -1,8 +1,26 @@
 # Visual binary editor
 
+This is a very early prototype of a web based tool to interface with byte-stream devices like serial interfaces. The core idea is building a UI for various external devices like microcontroller programmers, serial configuration tools, MIDI devices via SysEx etc. It will be able to visualize the serial output for monitoring purposes and provide user input to adjust its settings. Potential use cases:
+
+- Configuring R/C transmitters
+- Providing UIs to synths
+- MIDI librarian
+- Programming microcontrollers
+- Uploading files to flash carts
+
+It is currently fully built on litegraph.js but it is getting heavily modified to modernize and clean it. At some point, it will either get replaced or become unrecognizable. OTOH, it provides a great stepping stone for initial prototyping.
+The core idea resembles the capabilities of `https://github.com/WerWolv/ImHex` but for data streaming & on the web. I don't know if I'll adopt a similar [pattern language](https://github.com/WerWolv/PatternLanguage/) (maybe even compatible).
+The project is currently at a very early experimentation phase. It basically provides me something to work with Web Serial, USB and MIDI APIs and primarily serves my curiosity. I don't know how useful or feature complete it may become. I only have a few crude custom nodes implemented for serial input/output.
+
+You can try it at: https://builder.alinacierdem.com/
+
+## Starting the project locally
+
 `npm run dev`
 
 ### Create SSL cert
+
+To be able to use the Serial API locally, you need to have a locally trusted certificate.
 
 `cd ./ssl`
 
