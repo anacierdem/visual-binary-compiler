@@ -2440,9 +2440,8 @@ LiteGraph.LLink = LLink;
 /**
  * Base Class for all the node type classes
  * @class LGraphNode
- * @param {String} name a name for the node
+ * @param {String} [title] a name for the node
  */
-
 export function LGraphNode(title) {
   this._ctor(title);
 }
@@ -2820,10 +2819,9 @@ LGraphNode.prototype.setOutputDataType = function (slot, type) {
 /**
  * Retrieves the input data (data traveling through the connection) from one slot
  * @method getInputData
- * @param {number} slot
- * @param {boolean} force_update if set to true it will force the connected node of this slot to output data into this link
- * @return {*} data or if it is not connected returns undefined
+ * @type {import('./litegraph-types').GetInputData}
  */
+
 LGraphNode.prototype.getInputData = function (slot, force_update) {
   if (!this.inputs) {
     return;
@@ -3273,7 +3271,8 @@ LGraphNode.prototype.trigger = function (action, param, options) {
  * @method triggerSlot
  * @param {Number} slot the index of the output slot
  * @param {*} param
- * @param {Number} link_id [optional] in case you want to trigger and specific output link in a slot
+ * @param {Number} [link_id] in case you want to trigger and specific output link in a slot
+ * @param {*} [options] ?
  */
 LGraphNode.prototype.triggerSlot = function (slot, param, link_id, options) {
   options = options || {};
@@ -3450,8 +3449,8 @@ LGraphNode.prototype.addProperty = function (
  * add a new output slot to use in this node
  * @method addOutput
  * @param {string} name
- * @param {string} type string defining the output type ("vec3","number",...)
- * @param {Object} extra_info this can be used to have special properties of an output (label, special color, position, etc)
+ * @param {string | number} type string defining the output type ("vec3","number",...)
+ * @param {Object} [extra_info] this can be used to have special properties of an output (label, special color, position, etc)
  */
 LGraphNode.prototype.addOutput = function (name, type, extra_info) {
   var output = { name: name, type: type, links: null };
@@ -3542,7 +3541,7 @@ LGraphNode.prototype.removeOutput = function (slot) {
  * @method addInput
  * @param {string} name
  * @param {string} type string defining the input type ("vec3","number",...), it its a generic one use 0
- * @param {Object} extra_info this can be used to have special properties of an input (label, color, position, etc)
+ * @param {Object} [extra_info] this can be used to have special properties of an input (label, color, position, etc)
  */
 LGraphNode.prototype.addInput = function (name, type, extra_info) {
   type = type || 0;

@@ -1,44 +1,21 @@
-import { LiteGraph, LGraphNode } from '../litegraph/litegraph.js';
+import { LiteGraph } from '../litegraph/litegraph.js';
 
-export class Read extends LGraphNode {
+import { Reader } from './reader.js';
+
+export class Read extends Reader {
   constructor() {
     super();
-    this.addInput('in', 'ReadableStream');
     this.addInput('offset', 'number');
     this.addInput('length', 'number');
 
     this.addOutput('match', 'ArrayBuffer');
     this.addOutput('passthrough', 'ReadableStream');
+
+    this.addOutput('matched', LiteGraph.EVENT);
   }
   title = 'Read';
 
-  stream?: ReadableStream;
-  reader?: ReadableStreamDefaultReader;
-
-  // TODO: extend a common base class with consume
-  async onConnectionsChange(type, i, connected, info, input) {
-    if (type === LiteGraph.INPUT) {
-      // Readable stream input
-      if (i != 0) return;
-      if (connected) {
-        if (info.data) {
-          this.stream = info.data;
-        } else {
-          // FIXME: why this is needed except for the initial establish connection?
-          // FIXME: This creates a race condition with the disconnect event
-          while (!info.data) {
-            await new Promise((resolve) => setTimeout(resolve, 100));
-          }
-          this.stream = info.data;
-        }
-
-        this.startReading();
-      } else if (info.data.locked) {
-        this.stopReading();
-        this.stream = null;
-      }
-    }
-  }
+  reader: ReadableStreamDefaultReader | null = null;
 
   async stopReading() {
     if (this.reader) {
@@ -49,6 +26,7 @@ export class Read extends LGraphNode {
 
   async startReading() {
     try {
+      if (!this.stream) throw new Error('No stream to read from');
       const [stream1, stream2] = this.stream.tee();
       this.setOutputData(2, stream2);
       this.reader = stream1.getReader();
@@ -57,9 +35,14 @@ export class Read extends LGraphNode {
       const offset = this.getInputData<number>(1);
       const length = this.getInputData<number>(2);
 
+      if (!offset || !length) {
+        throw new Error('No input connection');
+      }
+
       let readBytes = 0;
       const buffer = new ArrayBuffer(length);
       const view = new Uint8Array(buffer);
+      // TODO: also move this to the base class
       while (readBytes < length + offset) {
         const { value, done } = await this.reader.read();
         if (done) {
@@ -80,6 +63,7 @@ export class Read extends LGraphNode {
         readBytes = readBytes + value.length;
       }
       this.setOutputData(0, buffer);
+      this.triggerSlot(2, buffer);
     } catch (error) {
       console.log('read error', error);
       if (error instanceof TypeError) {

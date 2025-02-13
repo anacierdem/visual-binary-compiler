@@ -1,7 +1,7 @@
-import { LiteGraph, LGraphNode } from '../litegraph/litegraph.js';
+import { Reader } from './reader.js';
 
-export class Consume extends LGraphNode {
-  constructor() {
+export class Consume extends Reader {
+  constructor(title: string) {
     super();
     this.addInput('in', 'ReadableStream');
 
@@ -10,30 +10,8 @@ export class Consume extends LGraphNode {
   }
   title = 'Consume';
 
-  stream?: ReadableStream;
-  reader?: ReadableStreamDefaultReader;
-
-  async onConnectionsChange(type, i, connected, info, input) {
-    if (type === LiteGraph.INPUT) {
-      // TODO: also check which input
-      if (connected) {
-        if (info.data) {
-          this.stream = info.data;
-        } else {
-          // FIXME: why this is needed except for the initial establish connection?
-          while (!info.data) {
-            await new Promise((resolve) => setTimeout(resolve, 100));
-          }
-          this.stream = info.data;
-        }
-
-        this.startReading();
-      } else if (info.data.locked) {
-        this.stopReading();
-        this.stream = null;
-      }
-    }
-  }
+  stream: ReadableStream | null = null;
+  reader: ReadableStreamDefaultReader | null = null;
 
   async stopReading() {
     if (this.reader) {
@@ -44,6 +22,7 @@ export class Consume extends LGraphNode {
 
   async startReading() {
     try {
+      if (!this.stream) throw new Error('No stream to read from');
       this.reader = this.stream.getReader();
       let cmd = '';
       const decoder = new TextDecoder();
