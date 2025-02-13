@@ -1,4 +1,4 @@
-import { LGraphNode } from '../litegraph/litegraph.js';
+import { LGraphNode } from '../litegraph/litegraph-node.js';
 
 export class Uint8 extends LGraphNode {
   constructor() {

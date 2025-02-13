@@ -1,4 +1,4 @@
-import { LiteGraph } from '../litegraph.js';
+import { LiteGraph } from '../litegraph.ts';
 
 function Math3DMat4() {
   this.addInput('T', 'vec3');

@@ -1,4 +1,4 @@
-import { LiteGraph } from '../litegraph/litegraph.js';
+import { LiteGraph } from '../litegraph/litegraph.ts';
 
 import { Reader } from './reader.js';
 

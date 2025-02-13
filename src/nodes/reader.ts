@@ -1,4 +1,6 @@
-import { LiteGraph, LGraphNode } from '../litegraph/litegraph.js';
+import { LiteGraph } from '../litegraph/litegraph.ts';
+
+import { LGraphNode } from '../litegraph/litegraph-node.js';
 
 export abstract class Reader extends LGraphNode {
   constructor() {

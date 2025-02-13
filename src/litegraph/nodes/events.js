@@ -1,4 +1,4 @@
-import { LiteGraph } from '../litegraph.js';
+import { LiteGraph } from '../litegraph.ts';
 
 //event related nodes
 //Show value inside the debug console

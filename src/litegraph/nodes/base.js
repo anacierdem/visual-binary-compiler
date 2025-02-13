@@ -1,4 +1,6 @@
-import { LiteGraph, LGraph } from '../litegraph.js';
+import { LGraph } from '../litegraph.js';
+import { LiteGraph } from '../litegraph.ts';
+import { LGraphNode } from '../litegraph-node.ts';
 //basic nodes
 //Constant
 function Time() {
@@ -320,7 +322,7 @@ Subgraph.prototype.onResize = function (size) {
 };
 
 Subgraph.prototype.serialize = function () {
-  var data = LiteGraph.LGraphNode.prototype.serialize.call(this);
+  var data = LGraphNode.prototype.serialize.call(this);
   data.subgraph = this.subgraph.serialize();
   return data;
 };

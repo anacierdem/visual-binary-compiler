@@ -1,4 +1,5 @@
-import { LiteGraph } from '../litegraph.js';
+import { LiteGraph } from '../litegraph.ts';
+
 var MIDI_COLOR = '#243';
 
 function MIDIEvent(data) {

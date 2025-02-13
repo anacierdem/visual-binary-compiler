@@ -1,5 +1,5 @@
 //basic nodes
-import { LiteGraph } from '../litegraph.js';
+import { LiteGraph } from '../litegraph.ts';
 
 function toString(a) {
   if (a && a.constructor === Object) {

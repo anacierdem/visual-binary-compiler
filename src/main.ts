@@ -1,7 +1,8 @@
 import './litegraph/litegraph.css';
 import './style.css';
 
-import { LGraph, LGraphCanvas, LiteGraph } from './litegraph/litegraph.js';
+import { LGraph, LGraphCanvas } from './litegraph/litegraph.js';
+import { LiteGraph } from './litegraph/litegraph.ts';
 
 // TODO: register all nodes here instead of in the node files
 import './litegraph/nodes/events';

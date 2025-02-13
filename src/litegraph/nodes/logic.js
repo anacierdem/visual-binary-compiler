@@ -1,4 +1,4 @@
-import { LiteGraph } from '../litegraph.js';
+import { LiteGraph } from '../litegraph.ts';
 
 function Selector() {
   this.addInput('sel', 'number');

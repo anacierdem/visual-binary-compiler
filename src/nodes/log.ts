@@ -1,4 +1,4 @@
-import { LGraphNode } from '../litegraph/litegraph.js';
+import { LGraphNode } from '../litegraph/litegraph-node';
 
 export class Log extends LGraphNode {
   constructor() {

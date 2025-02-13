@@ -1,8 +1,7 @@
-import {
-  IButtonWidget,
-  LGraphNode,
-  LiteGraph,
-} from '../litegraph/litegraph.js';
+import { IButtonWidget } from '../litegraph/litegraph.js';
+import { LiteGraph } from '../litegraph/litegraph.ts';
+
+import { LGraphNode } from '../litegraph/litegraph-node.js';
 
 export class Serial extends LGraphNode {
   connectButton: IButtonWidget;
