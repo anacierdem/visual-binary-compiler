@@ -1,4 +1,4 @@
-import { IButtonWidget } from '../litegraph/litegraph.js';
+import { IButtonWidget } from '../litegraph/lgraph.ts';
 import { LiteGraph } from '../litegraph/litegraph.ts';
 
 import { LGraphNode } from '../litegraph/litegraph-node.js';

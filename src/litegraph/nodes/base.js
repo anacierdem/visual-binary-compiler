@@ -1,4 +1,4 @@
-import { LGraph } from '../litegraph.js';
+import { LGraph } from '../lgraph.ts';
 import { LiteGraph } from '../litegraph.ts';
 import { LGraphNode } from '../litegraph-node.ts';
 //basic nodes

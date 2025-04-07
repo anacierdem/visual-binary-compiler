@@ -1,4 +1,5 @@
 import { LiteGraph } from './litegraph.ts';
+import { isInsideRectangle, LLink } from './lgraph.ts';
 
 // *************************************************************
 //   Node CLASS                                          *******

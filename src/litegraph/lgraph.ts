@@ -1556,7 +1556,14 @@ LGraph.prototype.onNodeTrace = function (node, msg, color) {
 };
 
 //this is the class in charge of storing link information
-function LLink(id, type, origin_id, origin_slot, target_id, target_slot) {
+export function LLink(
+  id,
+  type,
+  origin_id,
+  origin_slot,
+  target_id,
+  target_slot
+) {
   this.id = id;
   this.type = type;
   this.origin_id = origin_id;
@@ -7829,10 +7836,7 @@ LGraphCanvas.prototype.createDefaultNodeForSlot = function (optPass) {
       // is not not connected
     }
     nodeNewType = false;
-    if (
-      typeof slotTypesDefault[fromSlotType] == 'object' ||
-      typeof slotTypesDefault[fromSlotType] == 'array'
-    ) {
+    if (typeof slotTypesDefault[fromSlotType] == 'object') {
       for (var typeX in slotTypesDefault[fromSlotType]) {
         if (
           opts.nodeType == slotTypesDefault[fromSlotType][typeX] ||
@@ -7992,10 +7996,7 @@ LGraphCanvas.prototype.showConnectionMenu = function (optPass) {
     ? LiteGraph.slot_types_default_out
     : LiteGraph.slot_types_default_in;
   if (slotTypesDefault && slotTypesDefault[fromSlotType]) {
-    if (
-      typeof slotTypesDefault[fromSlotType] == 'object' ||
-      typeof slotTypesDefault[fromSlotType] == 'array'
-    ) {
+    if (typeof slotTypesDefault[fromSlotType] == 'object') {
       for (var typeX in slotTypesDefault[fromSlotType]) {
         options.push(slotTypesDefault[fromSlotType][typeX]);
       }
@@ -10428,7 +10429,7 @@ function colorToString(c) {
 }
 LiteGraph.colorToString = colorToString;
 
-function isInsideRectangle(x, y, left, top, width, height) {
+export function isInsideRectangle(x, y, left, top, width, height) {
   if (left < x && left + width > x && top < y && top + height > y) {
     return true;
   }

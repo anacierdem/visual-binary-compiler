@@ -1,4 +1,4 @@
-import { LiteGraph, LGraphCanvas } from '../litegraph.js';
+import { LiteGraph, LGraphCanvas } from '../lgraph.ts';
 
 //Works with Litegl.js to create WebGL nodes
 
