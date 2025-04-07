@@ -15,12 +15,12 @@ export abstract class Reader extends LGraphNode {
       // Readable stream input
       if (i != 0) return;
       if (connected) {
-        if (info.data) {
+        if (info?.data) {
           this.stream = info.data;
         } else {
           // FIXME: why this is needed except for the initial establish connection?
           // FIXME: This creates a race condition with the disconnect event
-          while (!info.data) {
+          while (!info?.data) {
             await new Promise((resolve) => setTimeout(resolve, 100));
           }
           this.stream = info.data;
