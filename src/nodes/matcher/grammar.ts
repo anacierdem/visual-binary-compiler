@@ -1,15 +1,21 @@
-import { createToken, Lexer, EmbeddedActionsParser } from 'chevrotain';
+import {
+  createToken,
+  Lexer,
+  EmbeddedActionsParser,
+  ParserMethod,
+} from 'chevrotain';
 // import * as util from 'util';
 
 const Identifier = createToken({ name: 'Identifier', pattern: /[a-zA-Z]\w*/ });
 
-const Struct = createToken({
+const StructTok = createToken({
   name: 'Struct',
   pattern: /struct/,
   longer_alt: Identifier,
 });
 
 const Integer = createToken({ name: 'Integer', pattern: /0|[1-9]\d*/ });
+const Hex = createToken({ name: 'Hex', pattern: /0x\d+/ });
 const LineEnding = createToken({ name: 'LineEnding', pattern: /;/ });
 const Comma = createToken({ name: 'Comma', pattern: /,/ });
 
@@ -19,6 +25,12 @@ const CurlyClose = createToken({ name: 'CurlyClose', pattern: /}/ });
 const SquareOpen = createToken({ name: 'SquareOpen', pattern: /\[/ });
 const SquareClose = createToken({ name: 'SquareClose', pattern: /\]/ });
 
+const At = createToken({ name: 'At', pattern: /@/ });
+
+// Keywords
+const In = createToken({ name: 'In', pattern: /in/ });
+const Out = createToken({ name: 'Out', pattern: /out/ });
+
 const WhiteSpace = createToken({
   name: 'WS',
   pattern: /\s+/,
@@ -27,10 +39,10 @@ const WhiteSpace = createToken({
 
 const allTokens = [
   WhiteSpace,
-  // "keywords" appear before the Identifier
-  Struct,
-  // The Identifier must appear after the keywords because all keywords are valid identifiers.
-  Identifier,
+
+  StructTok,
+
+  Hex,
   Integer,
   LineEnding,
   CurlyOpen,
@@ -38,16 +50,58 @@ const allTokens = [
   Comma,
   SquareOpen,
   SquareClose,
+  At,
+
+  In,
+  Out,
+
+  // The Identifier must appear after
+  Identifier,
 ];
 const myLexer = new Lexer(allTokens);
 
+type Field = {
+  kind: 'Variable';
+  name: string;
+  type: string;
+  size?: number | string;
+  at?: number;
+  in?: boolean;
+  out?: boolean;
+};
+type Struct = { kind: 'Struct'; name: string; fields: Field[] };
+
 class MyParser extends EmbeddedActionsParser {
+  arrayDeclaration;
+  variableDeclaration;
+  structDeclaration;
+  statement;
+  document;
+  number;
+
   constructor() {
     super(allTokens);
 
     const $ = this;
 
-    const arrayDeclaration = $.RULE('arrayDeclaration', () => {
+    this.number = $.RULE('number', () => {
+      let self = 0;
+      $.OR([
+        {
+          ALT: () => {
+            self = parseInt($.CONSUME2(Integer).image);
+          },
+        },
+        {
+          ALT: () => {
+            self = parseInt($.CONSUME2(Hex).image);
+          },
+        },
+      ]);
+      return self;
+    });
+
+    this.arrayDeclaration = $.RULE('arrayDeclaration', () => {
       $.CONSUME2(SquareOpen);
       let size;
       $.OR([
@@ -58,7 +112,7 @@ class MyParser extends EmbeddedActionsParser {
         },
         {
           ALT: () => {
-            size = parseInt($.CONSUME2(Integer).image);
+            size = $.SUBRULE(this.number);
           },
         },
       ]);
@@ -66,57 +120,114 @@ class MyParser extends EmbeddedActionsParser {
       return size;
     });
 
-    const fieldDeclaration = $.RULE('fieldDeclaration', () => {
-      const fields = [];
+    this.variableDeclaration = $.RULE('variableDeclaration', () => {
+      const fields: Field[] = [];
       const type = $.CONSUME1(Identifier).image;
 
       $.MANY_SEP({
         SEP: Comma,
         DEF: () => {
           const name = $.CONSUME2(Identifier).image;
-          let size;
+          let size, at, _in, out;
           $.OPTION(() => {
-            size = $.SUBRULE(arrayDeclaration);
+            size = $.SUBRULE(this.arrayDeclaration);
           });
 
-          const field: { name: string; type: string; size?: number | string } =
-            {
-              name,
-              type,
-            };
+          $.OPTION1(() => {
+            $.OR([
+              {
+                ALT: () => {
+                  $.CONSUME(At);
+                  at = $.SUBRULE(this.number);
+                },
+              },
+              {
+                ALT: () => {
+                  _in = $.CONSUME(In).image;
+                },
+              },
+              {
+                ALT: () => {
+                  out = $.CONSUME(Out).image;
+                },
+              },
+            ]);
+          });
+
+          const field: Field = {
+            kind: 'Variable',
+            name,
+            type,
+          };
 
           size && (field.size = size);
+          at && (field.at = at);
+          _in && (field.in = true);
+          out && (field.out = true);
 
           fields.push(field);
         },
       });
-      $.CONSUME(LineEnding);
 
       return fields;
     });
 
-    const structDefinition = $.RULE('structDefinition', () => {
-      const fields = [];
-      $.CONSUME(Struct);
+    this.structDeclaration = $.RULE('structDeclaration', () => {
+      let fields: Field[] = [];
+      $.CONSUME(StructTok);
       const name = $.CONSUME(Identifier).image;
       $.CONSUME(CurlyOpen);
-      $.MANY(() => fields.push($.SUBRULE(fieldDeclaration)));
-      $.CONSUME(CurlyClose);
-      return {
-        name,
-        fields: fields.flat(),
-      };
-    });
-
-    const document = $.RULE('document', () => {
-      const structs = [];
       $.MANY(() => {
-        structs.push($.SUBRULE(structDefinition));
+        const inner = $.SUBRULE($.variableDeclaration);
+
+        // TODO: combine with below
+        if (Array.isArray(inner)) {
+          fields = fields.concat(inner);
+        } else {
+          fields.push(inner);
+        }
+        fields.push();
         $.CONSUME(LineEnding);
       });
+      $.CONSUME(CurlyClose);
       return {
-        structs,
-      };
+        kind: 'Struct',
+        name,
+        fields: fields.flat(),
+      } as Struct;
+    });
+
+    this.statement = $.RULE('statement', () => {
+      let stmt: Field[] | Struct;
+      $.OR([
+        {
+          ALT: () => {
+            stmt = $.SUBRULE($.variableDeclaration);
+          },
+        },
+        {
+          ALT: () => {
+            stmt = $.SUBRULE($.structDeclaration);
+          },
+        },
+      ]);
+      $.CONSUME(LineEnding);
+      return stmt;
+    });
+
+    this.document = $.RULE('document', () => {
+      let results: (Field | Struct)[] = [];
+      $.MANY(() => {
+        const result = $.SUBRULE(this.statement);
+
+        // TODO: combine with above
+        if (Array.isArray(result)) {
+          results = results.concat(result);
+        } else {
+          results.push(result);
+        }
+      });
+      return results;
     });
 
     this.performSelfAnalysis();
@@ -136,20 +247,3 @@ export function parseInput(text: string) {
   }
   return res;
 }
-
-const text = `
-struct MyStruct {
-  Type type;
-  u16 len;
-  u32 x, y[len], z;
-  double a[2];
-};
-struct MyStruct {
-  Type type;
-  u16 len;
-  u32 x, y[len], z;
-  double a[2];
-};
-`;
-
-// console.log(util.inspect(parseInput(text), false, null));
