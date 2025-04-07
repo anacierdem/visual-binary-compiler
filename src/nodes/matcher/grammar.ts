@@ -1,10 +1,5 @@
-import {
-  createToken,
-  CstParser,
-  Lexer,
-  EmbeddedActionsParser,
-} from 'chevrotain';
-import * as util from 'util';
+import { createToken, Lexer, EmbeddedActionsParser } from 'chevrotain';
+// import * as util from 'util';
 
 const Identifier = createToken({ name: 'Identifier', pattern: /[a-zA-Z]\w*/ });
 
@@ -63,7 +58,7 @@ class MyParser extends EmbeddedActionsParser {
         },
         {
           ALT: () => {
-            size = $.CONSUME2(Integer).image;
+            size = parseInt($.CONSUME2(Integer).image);
           },
         },
       ]);
@@ -84,11 +79,15 @@ class MyParser extends EmbeddedActionsParser {
             size = $.SUBRULE(arrayDeclaration);
           });
 
-          fields.push({
-            name,
-            type,
-            size,
-          });
+          const field: { name: string; type: string; size?: number | string } =
+            {
+              name,
+              type,
+            };
+
+          size && (field.size = size);
+
+          fields.push(field);
         },
       });
       $.CONSUME(LineEnding);
@@ -126,7 +125,7 @@ class MyParser extends EmbeddedActionsParser {
 
 const myParser = new MyParser();
 
-function parseInput(text: string) {
+export function parseInput(text: string) {
   const lexingResult = myLexer.tokenize(text);
   // "input" is a setter which will reset the parser's state.
   myParser.input = lexingResult.tokens;
@@ -137,18 +136,20 @@ function parseInput(text: string) {
   }
   return res;
 }
-// struct MyStruct {
-//   Type type;
-//   u32 x, y, z;
-//   padding[10];
-//   double a;
-// };
+
 const text = `
 struct MyStruct {
   Type type;
-  u32 x, y, z;
+  u16 len;
+  u32 x, y[len], z;
+  double a[2];
+};
+struct MyStruct {
+  Type type;
+  u16 len;
+  u32 x, y[len], z;
   double a[2];
 };
 `;
 
-console.log('result', util.inspect(parseInput(text), false, null));
+// console.log(util.inspect(parseInput(text), false, null));

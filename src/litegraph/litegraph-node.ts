@@ -60,11 +60,11 @@ import { LiteGraph } from './litegraph.ts';
  * @class LGraphNode
  * @param {String} [title] a name for the node
  */
-export function LGraphNode(title) {
+export function LGraphNode(title: string) {
   this._ctor(title);
 }
 
-LGraphNode.prototype._ctor = function (title) {
+LGraphNode.prototype._ctor = function (title: string) {
   this.title = title || 'Unnamed';
   this.size = [LiteGraph.NODE_WIDTH, 60];
   this.graph = null;
