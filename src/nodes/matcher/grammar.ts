@@ -1,10 +1,20 @@
-import {
-  createToken,
-  Lexer,
-  EmbeddedActionsParser,
-  ParserMethod,
-} from 'chevrotain';
-// import * as util from 'util';
+import { createToken, Lexer, EmbeddedActionsParser } from 'chevrotain';
+
+export type Variable = {
+  kind: 'Variable';
+  name: string;
+  type: string;
+  count: number | string;
+  at?: number;
+  in?: boolean;
+  out?: boolean;
+};
+export type Struct = { kind: 'Struct'; name: string; fields: Variable[] };
+
+export type ParsedDocument = {
+  Variable?: Variable[];
+  Struct?: Struct[];
+};
 
 const Identifier = createToken({ name: 'Identifier', pattern: /[a-zA-Z]\w*/ });
 
@@ -60,17 +70,6 @@ const allTokens = [
 ];
 const myLexer = new Lexer(allTokens);
 
-type Field = {
-  kind: 'Variable';
-  name: string;
-  type: string;
-  size?: number | string;
-  at?: number;
-  in?: boolean;
-  out?: boolean;
-};
-type Struct = { kind: 'Struct'; name: string; fields: Field[] };
-
 class MyParser extends EmbeddedActionsParser {
   arrayDeclaration;
   variableDeclaration;
@@ -103,7 +102,7 @@ class MyParser extends EmbeddedActionsParser {
 
     this.arrayDeclaration = $.RULE('arrayDeclaration', () => {
       $.CONSUME2(SquareOpen);
-      let size;
+      let size: string | number = 0;
       $.OR([
         {
           ALT: () => {
@@ -121,16 +120,16 @@ class MyParser extends EmbeddedActionsParser {
     });
 
     this.variableDeclaration = $.RULE('variableDeclaration', () => {
-      const fields: Field[] = [];
+      const fields: Variable[] = [];
       const type = $.CONSUME1(Identifier).image;
 
       $.MANY_SEP({
         SEP: Comma,
         DEF: () => {
           const name = $.CONSUME2(Identifier).image;
-          let size, at, _in, out;
+          let count, at, _in, out;
           $.OPTION(() => {
-            size = $.SUBRULE(this.arrayDeclaration);
+            count = $.SUBRULE(this.arrayDeclaration);
           });
 
           $.OPTION1(() => {
@@ -154,14 +153,15 @@ class MyParser extends EmbeddedActionsParser {
             ]);
           });
 
-          const field: Field = {
+          const field: Variable = {
             kind: 'Variable',
             name,
             type,
+            count: 1,
           };
 
-          size && (field.size = size);
-          at && (field.at = at);
+          field.count = count ?? 1;
+          typeof at !== 'undefined' && (field.at = at);
           _in && (field.in = true);
           out && (field.out = true);
 
@@ -173,7 +173,7 @@ class MyParser extends EmbeddedActionsParser {
     });
 
     this.structDeclaration = $.RULE('structDeclaration', () => {
-      let fields: Field[] = [];
+      let fields: Variable[] = [];
       $.CONSUME(StructTok);
       const name = $.CONSUME(Identifier).image;
       $.CONSUME(CurlyOpen);
@@ -198,7 +198,7 @@ class MyParser extends EmbeddedActionsParser {
     });
 
     this.statement = $.RULE('statement', () => {
-      let stmt: Field[] | Struct;
+      let stmt: Variable[] | Struct;
       $.OR([
         {
           ALT: () => {
@@ -216,7 +216,7 @@ class MyParser extends EmbeddedActionsParser {
     });
 
     this.document = $.RULE('document', () => {
-      let results: (Field | Struct)[] = [];
+      let results: (Variable | Struct)[] = [];
       $.MANY(() => {
         const result = $.SUBRULE(this.statement);
 
@@ -240,10 +240,15 @@ export function parseInput(text: string) {
   const lexingResult = myLexer.tokenize(text);
   // "input" is a setter which will reset the parser's state.
   myParser.input = lexingResult.tokens;
-  const res = myParser.document();
+  const parsed = myParser.document();
 
   if (myParser.errors.length > 0) {
     console.log('ERRORS', myParser.errors);
   }
-  return res;
+
+  const final: ParsedDocument = Object.groupBy(
+    parsed,
+    ({ kind }) => kind
+  ) as ParsedDocument;
+  return final;
 }

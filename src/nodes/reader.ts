@@ -2,13 +2,13 @@ import { LiteGraph } from '../litegraph/litegraph.ts';
 
 import { LGraphNode } from '../litegraph/litegraph-node.js';
 
-export abstract class Reader extends LGraphNode {
+export abstract class Reader<T = ArrayBuffer> extends LGraphNode {
   constructor() {
     super();
     this.addInput('in', 'ReadableStream');
   }
 
-  stream: ReadableStream | null = null;
+  stream: ReadableStream<T> | null = null;
 
   async onConnectionsChange(type, i, connected, info, input) {
     if (type === LiteGraph.INPUT) {
